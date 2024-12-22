@@ -1,0 +1,286 @@
+import java.io.*;
+import java.util.*;
+import java.time.*;
+
+public class PersonalFinanceApp {
+
+    // Transaction class to store income and expense details
+    static class Transaction {
+        String description;
+        double amount;
+        String type; // "income" or "expense"
+        String category;
+        LocalDate date;
+
+        Transaction(String description, double amount, String type, String category) {
+            this.description = description;
+            this.amount = amount;
+            this.type = type;
+            this.category = category;
+            this.date = LocalDate.now();
+        }
+
+        @Override
+        public String toString() {
+            return type + ": " + description + " | Amount: $" + amount + " | Category: " + category + " | Date: " + date;
+        }
+    }
+
+    // RecurringTransaction class for recurring incomes or expenses
+    static class RecurringTransaction extends Transaction {
+        int recurrenceDays;
+
+        RecurringTransaction(String description, double amount, String type, String category, int recurrenceDays) {
+            super(description, amount, type, category);
+            this.recurrenceDays = recurrenceDays;
+        }
+
+        @Override
+        public String toString() {
+            return super.toString() + " | Recurs every " + recurrenceDays + " days";
+        }
+    }
+
+    // Budget class to manage total income, total expenses, and budget limits
+    static class Budget {
+        double totalIncome;
+        double totalExpenses;
+        double budgetLimit;
+        Map<String, Double> categoryBudgets;
+        Map<String, Double> categoryExpenses;
+
+        Budget(double budgetLimit) {
+            this.totalIncome = 0;
+            this.totalExpenses = 0;
+            this.budgetLimit = budgetLimit;
+            this.categoryBudgets = new HashMap<>();
+            this.categoryExpenses = new HashMap<>();
+        }
+
+        void setCategoryBudget(String category, double amount) {
+            categoryBudgets.put(category, amount);
+        }
+
+        void addIncome(double amount) {
+            totalIncome += amount;
+        }
+
+        void addExpense(String category, double amount) {
+            totalExpenses += amount;
+            categoryExpenses.put(category, categoryExpenses.getOrDefault(category, 0.0) + amount);
+        }
+
+        void displaySummary() {
+            System.out.println("Total Income: $" + totalIncome);
+            System.out.println("Total Expenses: $" + totalExpenses);
+            System.out.println("Remaining Balance: $" + (totalIncome - totalExpenses));
+            System.out.println("Budget Limit: $" + budgetLimit);
+            System.out.println("Remaining Budget: $" + (budgetLimit - totalExpenses));
+        }
+
+        void displayCategoryBudgets() {
+            System.out.println("\nCategory Budgets:");
+            for (Map.Entry<String, Double> entry : categoryBudgets.entrySet()) {
+                System.out.println(entry.getKey() + ": Budget: $" + entry.getValue() + ", Spent: $" + categoryExpenses.getOrDefault(entry.getKey(), 0.0));
+            }
+        }
+
+        void checkAlerts() {
+            System.out.println("\nBudget Alerts:");
+            for (Map.Entry<String, Double> entry : categoryBudgets.entrySet()) {
+                double spent = categoryExpenses.getOrDefault(entry.getKey(), 0.0);
+                if (spent > entry.getValue()) {
+                    System.out.println("Warning: You have exceeded the budget for " + entry.getKey() + "!");
+                }
+            }
+        }
+
+        void displayDetailedReport() {
+            System.out.println("\nDetailed Financial Report:");
+            System.out.println("Total Income: $" + totalIncome);
+            System.out.println("Total Expenses: $" + totalExpenses);
+            System.out.println("Remaining Balance: $" + (totalIncome - totalExpenses));
+            System.out.println("\nCategory Breakdown:");
+            for (Map.Entry<String, Double> entry : categoryBudgets.entrySet()) {
+                double spent = categoryExpenses.getOrDefault(entry.getKey(), 0.0);
+                System.out.printf("%s: Budget: $%.2f | Spent: $%.2f | Remaining: $%.2f\n", entry.getKey(), entry.getValue(), spent, entry.getValue() - spent);
+            }
+        }
+    }
+
+    // Investment class to track investments
+    static class Investment {
+        String name;
+        double amount;
+        double growthRate; // in percentage
+
+        Investment(String name, double amount, double growthRate) {
+            this.name = name;
+            this.amount = amount;
+            this.growthRate = growthRate;
+        }
+
+        void displayInvestment() {
+            System.out.printf("%s: Invested: $%.2f | Growth Rate: %.2f%%\n", name, amount, growthRate);
+        }
+
+        double calculateGrowth(int months) {
+            return amount * Math.pow(1 + (growthRate / 100), months);
+        }
+    }
+
+    // User class to handle user authentication, transactions, loans, and investments
+    static class User {
+        String username;
+        String password;
+        Budget budget;
+        List<Transaction> transactions;
+        List<RecurringTransaction> recurringTransactions;
+        List<Investment> investments;
+
+        User(String username, String password, double initialBudget) {
+            this.username = username;
+            this.password = password;
+            this.budget = new Budget(initialBudget);
+            this.transactions = new ArrayList<>();
+            this.recurringTransactions = new ArrayList<>();
+            this.investments = new ArrayList<>();
+        }
+
+        void addTransaction(Transaction transaction) {
+            transactions.add(transaction);
+            if (transaction.type.equals("income")) {
+                budget.addIncome(transaction.amount);
+            } else {
+                budget.addExpense(transaction.category, transaction.amount);
+            }
+        }
+
+        void addRecurringTransaction(RecurringTransaction recurringTransaction) {
+            recurringTransactions.add(recurringTransaction);
+        }
+
+        void addInvestment(Investment investment) {
+            investments.add(investment);
+        }
+
+        void displayTransactions() {
+            System.out.println("\nTransaction History for " + username + ":");
+            for (Transaction t : transactions) {
+                System.out.println(t);
+            }
+        }
+
+        void displayInvestments() {
+            System.out.println("\nInvestment Portfolio:");
+            for (Investment i : investments) {
+                i.displayInvestment();
+            }
+        }
+
+        void saveDataToFile() {
+            try (PrintWriter writer = new PrintWriter(new FileWriter(username + "_data.txt"))) {
+                writer.println("Username: " + username);
+                writer.println("Total Income: $" + budget.totalIncome);
+                writer.println("Total Expenses: $" + budget.totalExpenses);
+                writer.println("Remaining Balance: $" + (budget.totalIncome - budget.totalExpenses));
+                writer.println("\nTransactions:");
+                for (Transaction t : transactions) {
+                    writer.println(t);
+                }
+                System.out.println("Data saved successfully.");
+            } catch (IOException e) {
+                System.out.println("Error saving data.");
+            }
+        }
+
+        void loadDataFromFile() {
+            try (Scanner fileScanner = new Scanner(new File(username + "_data.txt"))) {
+                System.out.println("\nData Loaded:");
+                while (fileScanner.hasNextLine()) {
+                    System.out.println(fileScanner.nextLine());
+                }
+            } catch (IOException e) {
+                System.out.println("No saved data found.");
+            }
+        }
+    }
+
+    static Scanner scanner = new Scanner(System.in);
+    static Map<String, User> users = new HashMap<>();
+    static User currentUser;
+
+    public static boolean login(String username, String password) {
+        if (users.containsKey(username) && users.get(username).password.equals(password)) {
+            currentUser = users.get(username);
+            return true;
+        }
+        return false;
+    }
+
+    public static void register(String username, String password, double initialBudget) {
+        if (users.containsKey(username)) {
+            System.out.println("User already exists!");
+        } else {
+            User newUser = new User(username, password, initialBudget);
+            users.put(username, newUser);
+            System.out.println("User registered successfully!");
+        }
+    }
+
+    public static void addTransaction() {
+        System.out.print("Enter transaction description: ");
+        String description = scanner.nextLine();
+        System.out.print("Enter transaction amount: $");
+        double amount = scanner.nextDouble();
+        scanner.nextLine();
+        System.out.print("Enter transaction type (income/expense): ");
+        String type = scanner.nextLine().toLowerCase();
+        System.out.print("Enter transaction category: ");
+        String category = scanner.nextLine();
+
+        if (type.equals("income") || type.equals("expense")) {
+            currentUser.addTransaction(new Transaction(description, amount, type, category));
+            System.out.println("Transaction added successfully!");
+        } else {
+            System.out.println("Invalid type! Please enter 'income' or 'expense'.");
+        }
+    }
+
+    public static void viewTransactions() {
+        if (currentUser == null) {
+            System.out.println("Please log in first.");
+            return;
+        }
+        currentUser.displayTransactions();
+    }
+
+    public static void addRecurringTransaction() {
+        System.out.print("Enter recurring transaction description: ");
+        String description = scanner.nextLine();
+        System.out.print("Enter amount: $");
+        double amount = scanner.nextDouble();
+        scanner.nextLine();
+        System.out.print("Enter type (income/expense): ");
+        String type = scanner.nextLine().toLowerCase();
+        System.out.print("Enter category: ");
+        String category = scanner.nextLine();
+        System.out.print("Enter recurrence interval in days: ");
+        int recurrenceDays = scanner.nextInt();
+        scanner.nextLine();
+
+        if (type.equals("income") || type.equals("expense")) {
+            currentUser.addRecurringTransaction(new RecurringTransaction(description, amount, type, category, recurrenceDays));
+            System.out.println("Recurring transaction added successfully!");
+        } else {
+            System.out.println("Invalid type! Please enter 'income' or 'expense'.");
+        }
+    }
+
+    public static void viewInvestments() {
+        if (currentUser == null) {
+            System.out.println("Please log in first.");
+            return;
+        }
+        currentUser.displayInvestments();
+    }
