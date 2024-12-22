@@ -1,0 +1,111 @@
+import java.io.*;
+import java.time.LocalDate;
+import java.util.*;
+
+public class TaskManagerApp {
+
+    // Task class
+    static class Task {
+        String title;
+        String category;
+        String priority; // High, Medium, Low
+        LocalDate deadline;
+        boolean isCompleted;
+
+        Task(String title, String category, String priority, LocalDate deadline) {
+            this.title = title;
+            this.category = category;
+            this.priority = priority;
+            this.deadline = deadline;
+            this.isCompleted = false;
+        }
+
+        @Override
+        public String toString() {
+            String status = isCompleted ? "Completed" : "Pending";
+            return title + " | Priority: " + priority + " | Category: " + category +
+                   " | Deadline: " + deadline + " | Status: " + status;
+        }
+    }
+
+    // TaskManager class
+    static class TaskManager {
+        List<Task> tasks = new ArrayList<>();
+
+        void addTask(String title, String category, String priority, LocalDate deadline) {
+            tasks.add(new Task(title, category, priority, deadline));
+        }
+
+        void markTaskAsCompleted(int taskIndex) {
+            tasks.get(taskIndex).isCompleted = true;
+        }
+
+        void displayTasks() {
+            for (int i = 0; i < tasks.size(); i++) {
+                System.out.println((i + 1) + ". " + tasks.get(i));
+            }
+        }
+
+        void filterTasksByStatus(boolean completed) {
+            for (Task task : tasks) {
+                if (task.isCompleted == completed) {
+                    System.out.println(task);
+                }
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        TaskManager taskManager = new TaskManager();
+        Scanner scanner = new Scanner(System.in);
+
+        // Simple menu-driven system
+        int choice;
+        do {
+            System.out.println("\nTask Manager");
+            System.out.println("1. Add Task");
+            System.out.println("2. Mark Task as Completed");
+            System.out.println("3. View All Tasks");
+            System.out.println("4. View Pending Tasks");
+            System.out.println("5. Exit");
+            System.out.print("Choose an option: ");
+            choice = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
+
+            switch (choice) {
+                case 1:
+                    System.out.print("Enter task title: ");
+                    String title = scanner.nextLine();
+                    System.out.print("Enter category: ");
+                    String category = scanner.nextLine();
+                    System.out.print("Enter priority (High/Medium/Low): ");
+                    String priority = scanner.nextLine();
+                    System.out.print("Enter deadline (YYYY-MM-DD): ");
+                    LocalDate deadline = LocalDate.parse(scanner.nextLine());
+                    taskManager.addTask(title, category, priority, deadline);
+                    System.out.println("Task added successfully!");
+                    break;
+                case 2:
+                    taskManager.displayTasks();
+                    System.out.print("Enter task number to mark as completed: ");
+                    int taskNumber = scanner.nextInt();
+                    taskManager.markTaskAsCompleted(taskNumber - 1);
+                    System.out.println("Task marked as completed!");
+                    break;
+                case 3:
+                    System.out.println("All Tasks:");
+                    taskManager.displayTasks();
+                    break;
+                case 4:
+                    System.out.println("Pending Tasks:");
+                    taskManager.filterTasksByStatus(false);
+                    break;
+                case 5:
+                    System.out.println("Exiting...");
+                    break;
+                default:
+                    System.out.println("Invalid choice, try again!");
+            }
+        } while (choice != 5);
+    }
+}
