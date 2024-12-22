@@ -1,0 +1,145 @@
+import java.util.*;
+
+public class LibraryManagementSystem {
+
+    // Book class
+    static class Book {
+        String title;
+        String author;
+        String category;
+        boolean isAvailable;
+
+        Book(String title, String author, String category) {
+            this.title = title;
+            this.author = author;
+            this.category = category;
+            this.isAvailable = true;
+        }
+
+        @Override
+        public String toString() {
+            return title + " by " + author + " | Category: " + category + " | " +
+                   (isAvailable ? "Available" : "Not Available");
+        }
+    }
+
+    // User class
+    static class User {
+        String username;
+        String password;
+        String role; // Admin, Librarian, Member
+
+        User(String username, String password, String role) {
+            this.username = username;
+            this.password = password;
+            this.role = role;
+        }
+
+        @Override
+        public String toString() {
+            return username + " | Role: " + role;
+        }
+    }
+
+    // Library System
+    static class LibrarySystem {
+        List<Book> books = new ArrayList<>();
+        Map<String, User> users = new HashMap<>();
+
+        void addBook(String title, String author, String category) {
+            books.add(new Book(title, author, category));
+        }
+
+        void listBooks() {
+            for (Book book : books) {
+                System.out.println(book);
+            }
+        }
+
+        void borrowBook(String title, String username) {
+            for (Book book : books) {
+                if (book.title.equalsIgnoreCase(title) && book.isAvailable) {
+                    book.isAvailable = false;
+                    System.out.println(username + " borrowed \"" + title + "\"");
+                    return;
+                }
+            }
+            System.out.println("Book not available.");
+        }
+
+        void returnBook(String title) {
+            for (Book book : books) {
+                if (book.title.equalsIgnoreCase(title) && !book.isAvailable) {
+                    book.isAvailable = true;
+                    System.out.println("Book \"" + title + "\" returned.");
+                    return;
+                }
+            }
+            System.out.println("Invalid return request.");
+        }
+
+        void addUser(String username, String password, String role) {
+            users.put(username, new User(username, password, role));
+        }
+
+        void listUsers() {
+            for (User user : users.values()) {
+                System.out.println(user);
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        LibrarySystem library = new LibrarySystem();
+        Scanner scanner = new Scanner(System.in);
+
+        // Prepopulate some data
+        library.addBook("The Great Gatsby", "F. Scott Fitzgerald", "Fiction");
+        library.addBook("1984", "George Orwell", "Dystopian");
+        library.addBook("A Brief History of Time", "Stephen Hawking", "Science");
+
+        library.addUser("admin", "admin123", "Admin");
+        library.addUser("librarian", "lib123", "Librarian");
+        library.addUser("john", "john123", "Member");
+
+        // Simple menu
+        int choice;
+        do {
+            System.out.println("\nLibrary Management System");
+            System.out.println("1. List Books");
+            System.out.println("2. Borrow Book");
+            System.out.println("3. Return Book");
+            System.out.println("4. List Users");
+            System.out.println("5. Exit");
+            System.out.print("Choose an option: ");
+            choice = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
+
+            switch (choice) {
+                case 1:
+                    library.listBooks();
+                    break;
+                case 2:
+                    System.out.print("Enter book title to borrow: ");
+                    String borrowTitle = scanner.nextLine();
+                    System.out.print("Enter your username: ");
+                    String borrowUser = scanner.nextLine();
+                    library.borrowBook(borrowTitle, borrowUser);
+                    break;
+                case 3:
+                    System.out.print("Enter book title to return: ");
+                    String returnTitle = scanner.nextLine();
+                    library.returnBook(returnTitle);
+                    break;
+                case 4:
+                    library.listUsers();
+                    break;
+                case 5:
+                    System.out.println("Exiting...");
+                    break;
+                default:
+                    System.out.println("Invalid choice! Try again.");
+            }
+        } while (choice != 5);
+    }
+}
